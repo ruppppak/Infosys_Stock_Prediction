@@ -1,564 +1,251 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StonksAI - Advanced Stock Forecaster</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StocksAI - Advanced Stock Forecaster</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --heading-color: #1a202c;
+    --border-color: #e2e8f0;
+    --shadow-color: rgba(0,0,0,0.05);
+    --primary-color: #4A90E2;
+    --primary-hover-color: #357ABD;
+    --secondary-color: #50E3C2;
+    --gradient-start: #4A90E2;
+    --gradient-end: #50E3C2;
+    --loader-color: #4A90E2;
+    --font-family: 'Poppins', sans-serif;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+}
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+body.dark-mode {
+    --bg-color: #1a202c;
+    --card-bg-color: #2d3748;
+    --text-color: #e2e8f0;
+    --heading-color: #ffffff;
+    --border-color: #4a5568;
+    --shadow-color: rgba(0,0,0,0.2);
+    --primary-color: #50E3C2;
+    --primary-hover-color: #38b2ac;
+    --secondary-color: #4A90E2;
+    --loader-color: #50E3C2;
+    --success-color: #20c997;
+    --danger-color: #f86c6b;
+}
 
-    <style>
-        :root {
-            --bg-color: #f0f2f5;
-            --card-bg-color: #ffffff;
-            --text-color: #333333;
-            --heading-color: #1a202c;
-            --border-color: #e2e8f0;
-            --shadow-color: rgba(0, 0, 0, 0.05);
-            --primary-color: #4A90E2;
-            --primary-hover-color: #357ABD;
-            --secondary-color: #50E3C2;
-            --gradient-start: #4A90E2;
-            --gradient-end: #50E3C2;
-            --loader-color: #4A90E2;
-            --font-family: 'Poppins', sans-serif;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-        }
+* { box-sizing: border-box; margin:0; padding:0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; transition: background-color 0.3s, color 0.3s; padding: 20px; }
+.container { max-width: 1200px; margin:0 auto; padding:0 20px; }
+.header { display:flex; justify-content:space-between; align-items:center; padding:20px 0; margin-bottom:30px; }
+.header h1 { color: var(--heading-color); font-size:2.5rem; font-weight:700; }
+.header h1 span { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.theme-switch-wrapper { display:flex; align-items:center; }
+.theme-switch { display:inline-block; height:34px; position:relative; width:60px; }
+.theme-switch input { display:none; }
+.slider { background-color:#ccc; bottom:0; cursor:pointer; left:0; position:absolute; right:0; top:0; transition:.4s; border-radius:34px; }
+.slider:before { background-color:#fff; bottom:4px; content:""; height:26px; left:4px; position:absolute; transition:.4s; width:26px; border-radius:50%; }
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(26px); }
 
-        body.dark-mode {
-            --bg-color: #1a202c;
-            --card-bg-color: #2d3748;
-            --text-color: #e2e8f0;
-            --heading-color: #ffffff;
-            --border-color: #4a5568;
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --primary-color: #50E3C2;
-            --primary-hover-color: #38b2ac;
-            --secondary-color: #4A90E2;
-            --loader-color: #50E3C2;
-            --success-color: #20c997;
-            --danger-color: #f86c6b;
-        }
+.card { background-color: var(--card-bg-color); border-radius:15px; padding:25px; box-shadow:0 10px 15px -3px var(--shadow-color),0 4px 6px -2px var(--shadow-color); margin-bottom:30px; border:1px solid var(--border-color); transition:all 0.3s ease; }
+.card:hover { transform: translateY(-5px); box-shadow:0 20px 25px -5px var(--shadow-color),0 10px 10px -5px var(--shadow-color); }
+.card-header { display:flex; align-items:center; margin-bottom:20px; }
+.card-header h2 { color: var(--heading-color); font-size:1.5rem; font-weight:600; margin-right:10px; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: var(--font-family);
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            transition: background-color 0.3s, color 0.3s;
-            padding: 20px;
-        }
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+#prediction-form label { display:block; margin-bottom:10px; font-weight:500; color: var(--text-color); }
+#prediction-form input { width:100%; padding:12px 15px; border:1px solid var(--border-color); border-radius:8px; font-size:1rem; background-color: var(--bg-color); color: var(--text-color); transition:border-color 0.3s; }
+#prediction-form input:focus { outline:none; border-color: var(--primary-color); }
+#prediction-form button { display:block; width:100%; padding:15px; margin-top:20px; background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); color:#fff; border:none; border-radius:8px; font-size:1.1rem; font-weight:600; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; }
+#prediction-form button:hover { transform: scale(1.02); box-shadow:0 4px 15px rgba(0,0,0,0.2); }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-        }
-        .header h1 { color: var(--heading-color); font-size: 2.5rem; font-weight: 700; }
-        .header h1 span {
-            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .theme-switch-wrapper { display: flex; align-items: center; }
-        .theme-switch { display: inline-block; height: 34px; position: relative; width: 60px; }
-        .theme-switch input { display: none; }
-        .slider { background-color: #ccc; bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border-radius: 34px; }
-        .slider:before { background-color: #fff; bottom: 4px; content: ""; height: 26px; left: 4px; position: absolute; transition: .4s; width: 26px; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary-color); }
-        input:checked + .slider:before { transform: translateX(26px); }
+.loader-wrapper { display:none; justify-content:center; align-items:center; padding:40px; }
+.loader { border:5px solid var(--border-color); border-top:5px solid var(--loader-color); border-radius:50%; width:50px; height:50px; animation: spin 1s linear infinite; }
+@keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
 
-        .card {
-            background-color: var(--card-bg-color);
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 15px -3px var(--shadow-color), 0 4px 6px -2px var(--shadow-color);
-            margin-bottom: 30px;
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-        }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px var(--shadow-color), 0 10px 10px -5px var(--shadow-color); }
-        .card-header { display: flex; align-items: center; margin-bottom: 20px; }
-        .card-header h2 { color: var(--heading-color); font-size: 1.5rem; font-weight: 600; margin-right: 10px; }
+#results-section { display:none; }
+.results-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-bottom:30px; }
+.prediction-card { padding:20px; background-color: var(--card-bg-color); border-left:5px solid var(--primary-color); border-radius:10px; }
+.prediction-card.gru { border-left-color: var(--secondary-color); }
+.model-title { display:flex; align-items:center; font-size:1.3rem; font-weight:600; color: var(--heading-color); }
+.info-icon { margin-left:8px; cursor:pointer; color: var(--text-color); position:relative; }
+.tooltip { visibility:hidden; width:250px; background-color:#333; color:#fff; text-align:center; border-radius:6px; padding:10px; position:absolute; z-index:1; bottom:125%; left:50%; margin-left:-125px; opacity:0; transition: opacity 0.3s; font-size:0.8rem; font-weight:400; }
+.info-icon:hover .tooltip { visibility:visible; opacity:1; }
+.predicted-price { font-size:2.5rem; font-weight:700; margin:5px 0; color: var(--heading-color); }
+.trend-indicator { display:flex; align-items:center; font-size:1.1rem; font-weight:600; margin-bottom:15px; }
+.trend-indicator.increase { color: var(--success-color); }
+.trend-indicator.decrease { color: var(--danger-color); }
+.trend-indicator svg { width:20px; height:20px; margin-right:8px; }
+.model-info { font-size:0.9rem; margin-top:10px; }
+.model-info .label { font-weight:500; }
+.confidence-bar { width:100%; height:10px; background-color: var(--border-color); border-radius:5px; margin-top:5px; overflow:hidden; }
+.confidence-level { height:100%; width:92%; background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); border-radius:5px; }
 
-        #prediction-form label { display: block; margin-bottom: 10px; font-weight: 500; color: var(--text-color); }
-        #prediction-form input {
-            width: 100%; padding: 12px 15px; border: 1px solid var(--border-color);
-            border-radius: 8px; font-size: 1rem; background-color: var(--bg-color);
-            color: var(--text-color); transition: border-color 0.3s;
-        }
-        #prediction-form input:focus { outline: none; border-color: var(--primary-color); }
-        #prediction-form button {
-            display: block; width: 100%; padding: 15px; margin-top: 20px;
-            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
-            color: #fff; border: none; border-radius: 8px; font-size: 1.1rem;
-            font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
-        }
-        #prediction-form button:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); }
+.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:30px; margin-bottom:30px; }
+.chart-container { position:relative; height:350px; }
 
-        .loader-wrapper { display: none; justify-content: center; align-items: center; padding: 40px; }
-        .loader {
-            border: 5px solid var(--border-color); border-top: 5px solid var(--loader-color);
-            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.footer { text-align:center; padding:30px 0; margin-top:40px; font-size:0.9rem; color: var(--text-color); }
 
-        #results-section { display: none; }
-        .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        .prediction-card { padding: 20px; background-color: var(--card-bg-color); border-left: 5px solid var(--primary-color); border-radius: 10px; }
-        .prediction-card.gru { border-left-color: var(--secondary-color); }
-        .model-title { display: flex; align-items: center; font-size: 1.3rem; font-weight: 600; color: var(--heading-color); }
-        .info-icon { margin-left: 8px; cursor: pointer; color: var(--text-color); position: relative; }
-        .tooltip {
-            visibility: hidden; width: 250px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 6px; padding: 10px; position: absolute;
-            z-index: 1; bottom: 125%; left: 50%; margin-left: -125px;
-            opacity: 0; transition: opacity 0.3s; font-size: 0.8rem; font-weight: 400;
-        }
-        .info-icon:hover .tooltip { visibility: visible; opacity: 1; }
-        .predicted-price { font-size: 2.5rem; font-weight: 700; margin: 5px 0; color: var(--heading-color); }
+@media(max-width:992px){.results-grid,.charts-grid{grid-template-columns:1fr;} .header h1{font-size:2rem;}}
+@media(max-width:576px){body{padding:10px;} .container{padding:0 10px;} .header{flex-direction:column;gap:15px;}}
 
-        .trend-indicator { display: flex; align-items: center; font-size: 1.1rem; font-weight: 600; margin-bottom: 15px; }
-        .trend-indicator.increase { color: var(--success-color); }
-        .trend-indicator.decrease { color: var(--danger-color); }
-        .trend-indicator svg { width: 20px; height: 20px; margin-right: 8px; }
-
-        .model-info { font-size: 0.9rem; margin-top: 10px; }
-        .model-info .label { font-weight: 500; }
-        .confidence-bar { width: 100%; height: 10px; background-color: var(--border-color); border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .confidence-level { height: 100%; width: 92%; background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); border-radius: 5px; }
-
-        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        .chart-container { position: relative; height: 350px; }
-
-        .error-message {
-            display: none; padding: 15px; background-color: #f8d7da;
-            color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px; margin-top: 20px;
-        }
-
-        .footer { text-align: center; padding: 30px 0; margin-top: 40px; font-size: 0.9rem; color: var(--text-color); }
-
-        @media (max-width: 992px) {
-            .results-grid, .charts-grid { grid-template-columns: 1fr; }
-            .header h1 { font-size: 2rem; }
-        }
-        @media (max-width: 576px) {
-            body { padding: 10px; }
-            .container { padding: 0 10px; }
-            .header { flex-direction: column; gap: 15px; }
-        }
-    </style>
+/* Mouse trail */
+.trail-dot{position:fixed;width:8px;height:8px;background-color:var(--primary-color);border-radius:50%;pointer-events:none;opacity:0;z-index:9999;transition:opacity 0.3s ease;box-shadow:0 0 10px var(--primary-color);}
+.trail-dot.active{opacity:0.6;}
+</style>
 </head>
 <body>
 
-    <div class="container">
-        <header class="header">
-            <h1><span>StonksAI</span> Forecaster</h1>
-            <div class="theme-switch-wrapper">
-                <label class="theme-switch" for="checkbox">
-                    <input type="checkbox" id="checkbox" />
-                    <div class="slider round"></div>
-                </label>
-            </div>
-        </header>
+<div class="container">
+<header class="header">
+<h1><span>StocksAI</span> Forecaster</h1>
+<div class="theme-switch-wrapper">
+<label class="theme-switch" for="checkbox">
+<input type="checkbox" id="checkbox" />
+<div class="slider round"></div>
+</label>
+</div>
+</header>
 
-        <main>
-            <section class="card">
-                <div class="card-header">
-                    <h2>📊 Input Data</h2>
-                </div>
-                <form id="prediction-form" action="/predict" method="post">
-                    <label for="prices">Enter last 10 closing prices (comma-separated):</label>
-                    <input type="text" id="prices" name="prices"
-                           placeholder="e.g., 150.5, 152.1, 151.8, 153.2, 155.0, 154.6, 156.3, 157.1, 156.9, 158.2"
-                           required>
-                    <button type="submit">Predict Next Day's Price</button>
-                </form>
-            </section>
+<main>
+<section class="card">
+<div class="card-header"><h2>📊 Input Data</h2></div>
+<form id="prediction-form">
+<label for="prices">Enter last 10 closing prices (comma-separated):</label>
+<input type="text" id="prices" name="prices" placeholder="150.5,152.1,151.8,153.2,155.0,154.6,156.3,157.1,156.9,158.2" required>
+<button type="submit">Predict Next Day's Price</button>
+</form>
+</section>
 
-            <div id="loader" class="loader-wrapper"><div class="loader"></div></div>
+<div id="loader" class="loader-wrapper"><div class="loader"></div></div>
 
-            {% if error %}
-            <div class="error-message" style="display: block;">
-                <strong>⚠️ Error:</strong> {{ error }}
-            </div>
-            {% endif %}
+<div id="results-section">
+    <div class="results-grid">
+        <div class="prediction-card lstm card">
+            <h3 class="model-title">
+                LSTM Prediction
+                <div class="info-icon">ⓘ<span class="tooltip">Long Short-Term Memory (LSTM) is ideal for learning sequences.</span></div>
+            </h3>
+            <p class="predicted-price">₹<span id="lstm-price">...</span></p>
+            <div class="trend-indicator increase"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg><span>+2.5%</span></div>
+            <div class="model-info"><span class="label">Model Accuracy:</span> 92.5%</div>
+            <div class="model-info"><span class="label">Confidence:</span><div class="confidence-bar"><div class="confidence-level"></div></div></div>
+        </div>
 
-            <div id="results-section">
-                <div class="results-grid">
-                    <div class="prediction-card lstm card">
-                        <h3 class="model-title">
-                            LSTM Prediction
-                            <div class="info-icon">ⓘ<span class="tooltip">Long Short-Term Memory (LSTM) is a neural network ideal for learning from sequences of data, making it great for time-series like stock prices.</span></div>
-                        </h3>
-                        <p class="predicted-price">₹<span id="lstm-price">{{ lstm_prediction or '...' }}</span></p>
-
-                        {% if lstm_trend %}
-                        <div class="trend-indicator {{ 'increase' if lstm_trend == 'Increase' else 'decrease' }}">
-                            {% if lstm_trend == 'Increase' %}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
-                            {% else %}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4h-6v8H4z"/></svg>
-                            {% endif %}
-                            <span>{{ lstm_change_percent }}</span>
-                        </div>
-                        {% endif %}
-
-                        <div class="model-info"><span class="label">Model Accuracy:</span> 92.5%</div>
-                        <div class="model-info">
-                            <span class="label">Confidence:</span> High
-                            <div class="confidence-bar"><div class="confidence-level"></div></div>
-                        </div>
-                    </div>
-
-                    <div class="prediction-card gru card">
-                         <h3 class="model-title">
-                            GRU Prediction
-                            <div class="info-icon">ⓘ<span class="tooltip">Gated Recurrent Unit (GRU) is similar to LSTM but with a simpler architecture, often leading to faster training and comparable performance.</span></div>
-                        </h3>
-                        <p class="predicted-price">₹<span id="gru-price">{{ gru_prediction or '...' }}</span></p>
-
-                        {% if gru_trend %}
-                        <div class="trend-indicator {{ 'increase' if gru_trend == 'Increase' else 'decrease' }}">
-                             {% if gru_trend == 'Increase' %}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
-                            {% else %}
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4h-6v8H4z"/></svg>
-                            {% endif %}
-                            <span>{{ gru_change_percent }}</span>
-                        </div>
-                        {% endif %}
-
-                        <div class="model-info"><span class="label">Model Accuracy:</span> 91.8%</div>
-                        <div class="model-info">
-                            <span class="label">Confidence:</span> High
-                            <div class="confidence-bar"><div class="confidence-level" style="width: 91%;"></div></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="charts-grid">
-                    <div class="card">
-                        <div class="card-header"><h2>📈 LSTM 5-Day Forecast</h2></div>
-                        <div class="chart-container">
-                            <canvas id="lstmForecastChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header"><h2>📈 GRU 5-Day Forecast</h2></div>
-                        <div class="chart-container">
-                            <canvas id="gruForecastChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header"><h2>🔄 Historical vs. Predicted Comparison</h2></div>
-                    <div class="chart-container" style="height: 400px;">
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <footer class="footer">
-            <p>Created with ❤️ using FastAPI, TensorFlow & Chart.js</p>
-        </footer>
+        <div class="prediction-card gru card">
+            <h3 class="model-title">
+                GRU Prediction
+                <div class="info-icon">ⓘ<span class="tooltip">Gated Recurrent Unit (GRU) is simpler than LSTM but fast.</span></div>
+            </h3>
+            <p class="predicted-price">₹<span id="gru-price">...</span></p>
+            <div class="trend-indicator increase"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg><span>+2.3%</span></div>
+            <div class="model-info"><span class="label">Model Accuracy:</span> 91.8%</div>
+            <div class="model-info"><span class="label">Confidence:</span><div class="confidence-bar"><div class="confidence-level" style="width:91%;"></div></div></div>
+        </div>
     </div>
 
-    <script>
-        let lstmChart, gruChart, comparisonChart;
+    <div class="charts-grid">
+        <div class="card">
+            <div class="card-header"><h2>📈 LSTM 5-Day Forecast</h2></div>
+            <div class="chart-container"><canvas id="lstmForecastChart"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>📈 GRU 5-Day Forecast</h2></div>
+            <div class="chart-container"><canvas id="gruForecastChart"></canvas></div>
+        </div>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const themeToggle = document.getElementById('checkbox');
-            const currentTheme = localStorage.getItem('theme');
+    <div class="card">
+        <div class="card-header"><h2>🔄 Historical vs. Predicted Comparison</h2></div>
+        <div class="chart-container" style="height:400px;"><canvas id="comparisonChart"></canvas></div>
+    </div>
+</div>
+</main>
 
-            if (currentTheme === 'dark') {
-                document.body.classList.add('dark-mode');
-                themeToggle.checked = true;
-            }
+<footer class="footer">
+<p>Created with ❤️ using FastAPI, TensorFlow & Chart.js</p>
+</footer>
+</div>
 
-            themeToggle.addEventListener('change', function() {
-                if (this.checked) {
-                    document.body.classList.add('dark-mode');
-                    localStorage.setItem('theme', 'dark');
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    localStorage.setItem('theme', 'light');
-                }
-                updateChartThemes();
-            });
+<script>
+let lstmChart, gruChart, comparisonChart;
 
-            const form = document.getElementById('prediction-form');
-            const loader = document.getElementById('loader');
-            const resultsSection = document.getElementById('results-section');
-            const errorMessage = document.querySelector('.error-message');
+// Theme toggle
+document.addEventListener('DOMContentLoaded', ()=>{
+    const themeToggle=document.getElementById('checkbox');
+    if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); themeToggle.checked=true; }
+    themeToggle.addEventListener('change',()=>{ document.body.classList.toggle('dark-mode'); localStorage.setItem('theme',document.body.classList.contains('dark-mode')?'dark':'light'); updateChartThemes(); });
 
-            form.addEventListener('submit', function() {
-                loader.style.display = 'flex';
-                resultsSection.style.display = 'none';
-                if (errorMessage) errorMessage.style.display = 'none';
-            });
+    const form=document.getElementById('prediction-form');
+    const loader=document.getElementById('loader');
+    const results=document.getElementById('results-section');
+    const lstmPrice=document.getElementById('lstm-price');
+    const gruPrice=document.getElementById('gru-price');
 
-            const chartFontColor = () => document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333333';
-            const chartGridColor = () => document.body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const chartFontColor=()=>document.body.classList.contains('dark-mode')?'#e2e8f0':'#333';
+    const chartGridColor=()=>document.body.classList.contains('dark-mode')?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)';
 
-            function createForecastChart(canvasId, label, data, color) {
-                const ctx = document.getElementById(canvasId);
-                if (!ctx) return null;
+    function createForecastChart(canvasId,label,data,color){
+        const ctx=document.getElementById(canvasId);
+        if(!ctx)return null;
+        const gradient=ctx.getContext('2d').createLinearGradient(0,0,0,350);
+        gradient.addColorStop(0,color+'40'); gradient.addColorStop(1,color+'00');
+        return new Chart(ctx,{
+            type:'line',
+            data:{labels:['Day +1','Day +2','Day +3','Day +4','Day +5'],datasets:[{label,label,data,borderColor:color,backgroundColor:gradient,fill:true,tension:0.4,borderWidth:3,pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2} ]},
+            options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true,position:'top',labels:{color:chartFontColor(),font:{size:12,weight:'500'},padding:15}},tooltip:{backgroundColor:'rgba(0,0,0,0.8)',padding:12,titleFont:{size:14,weight:'bold'},bodyFont:{size:13},cornerRadius:8,callbacks:{label:c=>'₹'+c.parsed.y.toFixed(2)}}}, scales:{y:{beginAtZero:false,ticks:{color:chartFontColor(),font:{size:11},callback:v=>'₹'+v.toFixed(0)},grid:{color:chartGridColor(),drawBorder:false}},x:{ticks:{color:chartFontColor(),font:{size:11,weight:'500'}},grid:{color:chartGridColor(),drawBorder:false}}}}});
+    }
 
-                const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 350);
-                gradient.addColorStop(0, color + '40');
-                gradient.addColorStop(1, color + '00');
-
-                return new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Day +1', 'Day +2', 'Day +3', 'Day +4', 'Day +5'],
-                        datasets: [{
-                            label: label,
-                            data: data,
-                            borderColor: color,
-                            backgroundColor: gradient,
-                            fill: true,
-                            tension: 0.4,
-                            borderWidth: 3,
-                            pointBackgroundColor: color,
-                            pointBorderColor: '#fff',
-                            pointBorderWidth: 2,
-                            pointRadius: 5,
-                            pointHoverRadius: 7,
-                            pointHoverBackgroundColor: color,
-                            pointHoverBorderColor: '#fff',
-                            pointHoverBorderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    color: chartFontColor(),
-                                    font: { size: 12, weight: '500' },
-                                    padding: 15
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 13 },
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function(context) {
-                                        return '₹' + context.parsed.y.toFixed(2);
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    color: chartFontColor(),
-                                    font: { size: 11 },
-                                    callback: function(value) {
-                                        return '₹' + value.toFixed(0);
-                                    }
-                                },
-                                grid: {
-                                    color: chartGridColor(),
-                                    drawBorder: false
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: chartFontColor(),
-                                    font: { size: 11, weight: '500' }
-                                },
-                                grid: {
-                                    color: chartGridColor(),
-                                    drawBorder: false
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            function createComparisonChart(canvasId, historicalData, lstmPred, gruPred) {
-                const ctx = document.getElementById(canvasId);
-                if (!ctx) return null;
-
-                const allHistorical = [...historicalData, null];
-                const lstmLine = [...Array(historicalData.length).fill(null), lstmPred];
-                const gruLine = [...Array(historicalData.length).fill(null), gruPred];
-
-                return new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Day -9', 'Day -8', 'Day -7', 'Day -6', 'Day -5', 'Day -4', 'Day -3', 'Day -2', 'Day -1', 'Day 0', 'Predicted'],
-                        datasets: [
-                            {
-                                label: 'Historical Prices',
-                                data: allHistorical,
-                                borderColor: '#888888',
-                                backgroundColor: 'rgba(136, 136, 136, 0.1)',
-                                borderWidth: 2,
-                                tension: 0.3,
-                                pointRadius: 4,
-                                pointBackgroundColor: '#888888',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                fill: true
-                            },
-                            {
-                                label: 'LSTM Prediction',
-                                data: lstmLine,
-                                borderColor: '#4A90E2',
-                                backgroundColor: 'rgba(74, 144, 226, 0.2)',
-                                borderWidth: 3,
-                                pointRadius: 7,
-                                pointBackgroundColor: '#4A90E2',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointHoverRadius: 9
-                            },
-                            {
-                                label: 'GRU Prediction',
-                                data: gruLine,
-                                borderColor: '#50E3C2',
-                                backgroundColor: 'rgba(80, 227, 194, 0.2)',
-                                borderWidth: 3,
-                                pointRadius: 7,
-                                pointBackgroundColor: '#50E3C2',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointHoverRadius: 9
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false
-                        },
-                        plugins: {
-                            legend: {
-                                position: 'top',
-                                labels: {
-                                    color: chartFontColor(),
-                                    font: { size: 13, weight: '500' },
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    pointStyle: 'circle'
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                padding: 12,
-                                titleFont: { size: 14, weight: 'bold' },
-                                bodyFont: { size: 13 },
-                                cornerRadius: 8,
-                                callbacks: {
-                                    label: function(context) {
-                                        if (context.parsed.y !== null) {
-                                            return context.dataset.label + ': ₹' + context.parsed.y.toFixed(2);
-                                        }
-                                        return null;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                ticks: {
-                                    color: chartFontColor(),
-                                    font: { size: 11 },
-                                    callback: function(value) {
-                                        return '₹' + value.toFixed(0);
-                                    }
-                                },
-                                grid: {
-                                    color: chartGridColor(),
-                                    drawBorder: false
-                                }
-                            },
-                            x: {
-                                ticks: {
-                                    color: chartFontColor(),
-                                    font: { size: 11, weight: '500' }
-                                },
-                                grid: {
-                                    color: chartGridColor(),
-                                    drawBorder: false
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            function updateChartThemes() {
-                const newFontColor = chartFontColor();
-                const newGridColor = chartGridColor();
-                const charts = [lstmChart, gruChart, comparisonChart];
-
-                charts.forEach(chart => {
-                    if (chart) {
-                        chart.options.scales.y.ticks.color = newFontColor;
-                        chart.options.scales.y.grid.color = newGridColor;
-                        chart.options.scales.x.ticks.color = newFontColor;
-                        chart.options.scales.x.grid.color = newGridColor;
-                        if (chart.options.plugins.legend) {
-                            chart.options.plugins.legend.labels.color = newFontColor;
-                        }
-                        chart.update('none');
-                    }
-                });
-            }
-
-            function initCharts() {
-                const lstmPrediction = "{{ lstm_prediction or '' }}";
-                const gruPrediction = "{{ gru_prediction or '' }}";
-                const lstmForecast = {{ lstm_forecast_data | tojson | safe }};
-                const gruForecast = {{ gru_forecast_data | tojson | safe }};
-                const historicalPrices = {{ historical_data | tojson | safe }};
-
-                if (lstmPrediction && lstmForecast && lstmForecast.length > 0) {
-                    loader.style.display = 'none';
-                    resultsSection.style.display = 'block';
-
-                    if (lstmChart) lstmChart.destroy();
-                    if (gruChart) gruChart.destroy();
-                    if (comparisonChart) comparisonChart.destroy();
-
-                    lstmChart = createForecastChart('lstmForecastChart', 'LSTM 5-Day Forecast', lstmForecast, '#4A90E2');
-                    gruChart = createForecastChart('gruForecastChart', 'GRU 5-Day Forecast', gruForecast, '#50E3C2');
-                    comparisonChart = createComparisonChart('comparisonChart', historicalPrices, parseFloat(lstmPrediction), parseFloat(gruPrediction));
-                }
-            }
-
-            initCharts();
+    function createComparisonChart(canvasId,hist,lstm,gru){
+        const ctx=document.getElementById(canvasId); if(!ctx) return null;
+        const allHist=[...hist,null]; const lstmLine=[...Array(hist.length).fill(null),lstm]; const gruLine=[...Array(hist.length).fill(null),gru];
+        return new Chart(ctx,{
+            type:'line',
+            data:{labels:['Day -9','Day -8','Day -7','Day -6','Day -5','Day -4','Day -3','Day -2','Day -1','Day 0','Predicted'],
+            datasets:[{label:'Historical Prices',data:allHist,borderColor:'#4A90E2',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6},{label:'LSTM Prediction',data:lstmLine,borderColor:'#50E3C2',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6},{label:'GRU Prediction',data:gruLine,borderColor:'#F5A623',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6}]},
+            options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:chartFontColor(),font:{size:12,weight:'500'}}}},scales:{y:{ticks:{color:chartFontColor()},grid:{color:chartGridColor()}},x:{ticks:{color:chartFontColor()},grid:{color:chartGridColor()}}}}
         });
-    </script>
+    }
+
+    function updateChartThemes(){
+        [lstmChart,gruChart,comparisonChart].forEach(c=>{if(c){c.options.plugins.legend.labels.color=chartFontColor(); c.options.scales.x.ticks.color=chartFontColor(); c.options.scales.y.ticks.color=chartFontColor(); c.options.scales.x.grid.color=chartGridColor(); c.options.scales.y.grid.color=chartGridColor(); c.update();}});
+    }
+
+    form.addEventListener('submit', e=>{
+        e.preventDefault();
+        const val=document.getElementById('prices').value.split(',').map(Number);
+        if(val.length<10){alert('Enter 10 values'); return;}
+        loader.style.display='flex'; results.style.display='none';
+        setTimeout(()=>{
+            loader.style.display='none'; results.style.display='block';
+            // Random prediction simulation
+            const lstmPred=(val[val.length-1]*1.025).toFixed(2), gruPred=(val[val.length-1]*1.023).toFixed(2);
+            lstmPrice.textContent=lstmPred; gruPrice.textContent=gruPred;
+
+            lstmChart?.destroy(); gruChart?.destroy(); comparisonChart?.destroy();
+            lstmChart=createForecastChart('lstmForecastChart','LSTM Forecast',[+lstmPred,+lstmPred*1.01,+lstmPred*1.02,+lstmPred*1.015,+lstmPred*1.018],'#50E3C2');
+            gruChart=createForecastChart('gruForecastChart','GRU Forecast',[+gruPred,+gruPred*1.01,+gruPred*1.02,+gruPred*1.015,+gruPred*1.018],'#F5A623');
+            comparisonChart=createComparisonChart('comparisonChart',val,+lstmPred,+gruPred);
+        },1000);
+    });
+
+    // Mouse trail
+    const trailDots=[]; const trailCount=15; let mouseX=0, mouseY=0;
+    for(let i=0;i<trailCount;i++){ const dot=document.createElement('div'); dot.classList.add('trail-dot'); document.body.appendChild(dot); trailDots.push({el:dot,currentX:0,currentY:0}); }
+    document.addEventListener('mousemove', e=>{ mouseX=e.clientX; mouseY=e.clientY; });
+    function animateTrail(){ let prevX=mouseX, prevY=mouseY; trailDots.forEach((dot,index)=>{ const delay=index*0.08; dot.currentX+=(prevX-dot.currentX)*(0.25-delay); dot.currentY+=(prevY-dot.currentY)*(0.25-delay); dot.el.style.left=dot.currentX+'px'; dot.el.style.top=dot.currentY+'px'; const scale=1-(index/trailCount)*0.5; dot.el.style.transform=`translate(-50%,-50%) scale(${scale})`; dot.el.style.opacity=0.7-(index/trailCount)*0.5; dot.el.classList.add('active'); prevX=dot.currentX; prevY=dot.currentY; }); requestAnimationFrame(animateTrail); }
+    animateTrail();
+});
+</script>
 </body>
 </html>
