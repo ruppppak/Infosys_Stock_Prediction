@@ -50,6 +50,72 @@ body { font-family: var(--font-family); background-color: var(--bg-color); color
 .header { display:flex; justify-content:space-between; align-items:center; padding:20px 0; margin-bottom:30px; }
 .header h1 { color: var(--heading-color); font-size:2.5rem; font-weight:700; }
 .header h1 span { background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: var(--card-bg-color);
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 0 2px 10px var(--shadow-color);
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    color: var(--heading-color);
+    font-size: 0.95rem;
+}
+
+.user-label {
+    font-size: 0.75rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.btn-logout {
+    padding: 10px 20px;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
 .theme-switch-wrapper { display:flex; align-items:center; }
 .theme-switch { display:inline-block; height:34px; position:relative; width:60px; }
 .theme-switch input { display:none; }
@@ -96,10 +162,19 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 .footer { text-align:center; padding:30px 0; margin-top:40px; font-size:0.9rem; color: var(--text-color); }
 
-@media(max-width:992px){.results-grid,.charts-grid{grid-template-columns:1fr;} .header h1{font-size:2rem;}}
-@media(max-width:576px){body{padding:10px;} .container{padding:0 10px;} .header{flex-direction:column;gap:15px;}}
+@media(max-width:992px){
+    .results-grid,.charts-grid{grid-template-columns:1fr;} 
+    .header h1{font-size:2rem;}
+    .header {flex-direction:column; gap:15px;}
+    .header-right {width:100%; justify-content:space-between;}
+}
+@media(max-width:576px){
+    body{padding:10px;} 
+    .container{padding:0 10px;} 
+    .user-info {padding:8px 15px;}
+    .user-details {display:none;}
+}
 
-/* Mouse trail */
 .trail-dot{position:fixed;width:8px;height:8px;background-color:var(--primary-color);border-radius:50%;pointer-events:none;opacity:0;z-index:9999;transition:opacity 0.3s ease;box-shadow:0 0 10px var(--primary-color);}
 .trail-dot.active{opacity:0.6;}
 </style>
@@ -109,18 +184,30 @@ input:checked + .slider:before { transform: translateX(26px); }
 <div class="container">
 <header class="header">
 <h1><span>StocksAI</span> Forecaster</h1>
-<div class="theme-switch-wrapper">
-<label class="theme-switch" for="checkbox">
-<input type="checkbox" id="checkbox" />
-<div class="slider round"></div>
-</label>
+<div class="header-right">
+    {% if user %}
+    <div class="user-info">
+        <div class="user-avatar">{{ user.username[0].upper() }}</div>
+        <div class="user-details">
+            <span class="user-name">{{ user.username }}</span>
+            <span class="user-label">Trader</span>
+        </div>
+    </div>
+    <a href="/logout" class="btn-logout">Logout</a>
+    {% endif %}
+    <div class="theme-switch-wrapper">
+        <label class="theme-switch" for="checkbox">
+            <input type="checkbox" id="checkbox" />
+            <div class="slider round"></div>
+        </label>
+    </div>
 </div>
 </header>
 
 <main>
 <section class="card">
 <div class="card-header"><h2>📊 Input Data</h2></div>
-<form id="prediction-form">
+<form id="prediction-form" method="POST" action="/predict">
 <label for="prices">Enter last 10 closing prices (comma-separated):</label>
 <input type="text" id="prices" name="prices" placeholder="150.5,152.1,151.8,153.2,155.0,154.6,156.3,157.1,156.9,158.2" required>
 <button type="submit">Predict Next Day's Price</button>
@@ -129,15 +216,35 @@ input:checked + .slider:before { transform: translateX(26px); }
 
 <div id="loader" class="loader-wrapper"><div class="loader"></div></div>
 
-<div id="results-section">
+{% if error %}
+<div class="card" style="background-color:#fee;border-left:4px solid var(--danger-color);">
+    <p style="color:var(--danger-color);font-weight:500;">⚠️ {{ error }}</p>
+</div>
+{% endif %}
+
+{% if warning %}
+<div class="card" style="background-color:#fffbea;border-left:4px solid #ffa500;">
+    <p style="color:#cc8400;font-weight:500;">{{ warning }}</p>
+</div>
+{% endif %}
+
+{% if lstm_prediction %}
+<div id="results-section" style="display:block;">
     <div class="results-grid">
         <div class="prediction-card lstm card">
             <h3 class="model-title">
                 LSTM Prediction
                 <div class="info-icon">ⓘ<span class="tooltip">Long Short-Term Memory (LSTM) is ideal for learning sequences.</span></div>
             </h3>
-            <p class="predicted-price">₹<span id="lstm-price">...</span></p>
-            <div class="trend-indicator increase"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg><span>+2.5%</span></div>
+            <p class="predicted-price">₹<span id="lstm-price">{{ lstm_prediction }}</span></p>
+            <div class="trend-indicator {{ 'increase' if lstm_trend == 'Increase' else 'decrease' }}">
+                {% if lstm_trend == 'Increase' %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg>
+                {% endif %}
+                <span>{{ lstm_change_percent }}</span>
+            </div>
             <div class="model-info"><span class="label">Model Accuracy:</span> 92.5%</div>
             <div class="model-info"><span class="label">Confidence:</span><div class="confidence-bar"><div class="confidence-level"></div></div></div>
         </div>
@@ -147,8 +254,15 @@ input:checked + .slider:before { transform: translateX(26px); }
                 GRU Prediction
                 <div class="info-icon">ⓘ<span class="tooltip">Gated Recurrent Unit (GRU) is simpler than LSTM but fast.</span></div>
             </h3>
-            <p class="predicted-price">₹<span id="gru-price">...</span></p>
-            <div class="trend-indicator increase"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg><span>+2.3%</span></div>
+            <p class="predicted-price">₹<span id="gru-price">{{ gru_prediction }}</span></p>
+            <div class="trend-indicator {{ 'increase' if gru_trend == 'Increase' else 'decrease' }}">
+                {% if gru_trend == 'Increase' %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-8 8h5v8h6v-8h5z"/></svg>
+                {% else %}
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 20l8-8h-5V4H9v8H4z"/></svg>
+                {% endif %}
+                <span>{{ gru_change_percent }}</span>
+            </div>
             <div class="model-info"><span class="label">Model Accuracy:</span> 91.8%</div>
             <div class="model-info"><span class="label">Confidence:</span><div class="confidence-bar"><div class="confidence-level" style="width:91%;"></div></div></div>
         </div>
@@ -170,6 +284,90 @@ input:checked + .slider:before { transform: translateX(26px); }
         <div class="chart-container" style="height:400px;"><canvas id="comparisonChart"></canvas></div>
     </div>
 </div>
+
+<script>
+    const historicalData = {{ historical_data|tojson }};
+    const lstmForecastData = {{ lstm_forecast_data|tojson }};
+    const gruForecastData = {{ gru_forecast_data|tojson }};
+    const lstmPrediction = {{ lstm_prediction }};
+    const gruPrediction = {{ gru_prediction }};
+
+    const chartFontColor = () => document.body.classList.contains('dark-mode') ? '#e2e8f0' : '#333';
+    const chartGridColor = () => document.body.classList.contains('dark-mode') ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+
+    function createForecastChart(canvasId, label, data, color) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 350);
+        gradient.addColorStop(0, color + '40');
+        gradient.addColorStop(1, color + '00');
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Day +1', 'Day +2', 'Day +3', 'Day +4', 'Day +5'],
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointBackgroundColor: color,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { color: chartFontColor(), font: { size: 12, weight: '500' } } },
+                    tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', padding: 12, callbacks: { label: c => '₹' + c.parsed.y.toFixed(2) } }
+                },
+                scales: {
+                    y: { beginAtZero: false, ticks: { color: chartFontColor(), callback: v => '₹' + v.toFixed(0) }, grid: { color: chartGridColor() } },
+                    x: { ticks: { color: chartFontColor() }, grid: { color: chartGridColor() } }
+                }
+            }
+        });
+    }
+
+    function createComparisonChart(canvasId, hist, lstm, gru) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return null;
+        const allHist = [...hist, null];
+        const lstmLine = [...Array(hist.length).fill(null), lstm];
+        const gruLine = [...Array(hist.length).fill(null), gru];
+        return new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Day -9', 'Day -8', 'Day -7', 'Day -6', 'Day -5', 'Day -4', 'Day -3', 'Day -2', 'Day -1', 'Day 0', 'Predicted'],
+                datasets: [
+                    { label: 'Historical Prices', data: allHist, borderColor: '#4A90E2', borderWidth: 3, tension: 0.3, pointRadius: 4 },
+                    { label: 'LSTM Prediction', data: lstmLine, borderColor: '#50E3C2', borderWidth: 3, tension: 0.3, pointRadius: 4 },
+                    { label: 'GRU Prediction', data: gruLine, borderColor: '#F5A623', borderWidth: 3, tension: 0.3, pointRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: chartFontColor() } } },
+                scales: {
+                    y: { ticks: { color: chartFontColor() }, grid: { color: chartGridColor() } },
+                    x: { ticks: { color: chartFontColor() }, grid: { color: chartGridColor() } }
+                }
+            }
+        });
+    }
+
+    createForecastChart('lstmForecastChart', 'LSTM Forecast', lstmForecastData, '#50E3C2');
+    createForecastChart('gruForecastChart', 'GRU Forecast', gruForecastData, '#F5A623');
+    createComparisonChart('comparisonChart', historicalData, lstmPrediction, gruPrediction);
+</script>
+{% endif %}
 </main>
 
 <footer class="footer">
@@ -178,72 +376,45 @@ input:checked + .slider:before { transform: translateX(26px); }
 </div>
 
 <script>
-let lstmChart, gruChart, comparisonChart;
-
-// Theme toggle
-document.addEventListener('DOMContentLoaded', ()=>{
-    const themeToggle=document.getElementById('checkbox');
-    if(localStorage.getItem('theme')==='dark'){ document.body.classList.add('dark-mode'); themeToggle.checked=true; }
-    themeToggle.addEventListener('change',()=>{ document.body.classList.toggle('dark-mode'); localStorage.setItem('theme',document.body.classList.contains('dark-mode')?'dark':'light'); updateChartThemes(); });
-
-    const form=document.getElementById('prediction-form');
-    const loader=document.getElementById('loader');
-    const results=document.getElementById('results-section');
-    const lstmPrice=document.getElementById('lstm-price');
-    const gruPrice=document.getElementById('gru-price');
-
-    const chartFontColor=()=>document.body.classList.contains('dark-mode')?'#e2e8f0':'#333';
-    const chartGridColor=()=>document.body.classList.contains('dark-mode')?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.1)';
-
-    function createForecastChart(canvasId,label,data,color){
-        const ctx=document.getElementById(canvasId);
-        if(!ctx)return null;
-        const gradient=ctx.getContext('2d').createLinearGradient(0,0,0,350);
-        gradient.addColorStop(0,color+'40'); gradient.addColorStop(1,color+'00');
-        return new Chart(ctx,{
-            type:'line',
-            data:{labels:['Day +1','Day +2','Day +3','Day +4','Day +5'],datasets:[{label,label,data,borderColor:color,backgroundColor:gradient,fill:true,tension:0.4,borderWidth:3,pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:2,pointRadius:5,pointHoverRadius:7,pointHoverBackgroundColor:color,pointHoverBorderColor:'#fff',pointHoverBorderWidth:2} ]},
-            options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{display:true,position:'top',labels:{color:chartFontColor(),font:{size:12,weight:'500'},padding:15}},tooltip:{backgroundColor:'rgba(0,0,0,0.8)',padding:12,titleFont:{size:14,weight:'bold'},bodyFont:{size:13},cornerRadius:8,callbacks:{label:c=>'₹'+c.parsed.y.toFixed(2)}}}, scales:{y:{beginAtZero:false,ticks:{color:chartFontColor(),font:{size:11},callback:v=>'₹'+v.toFixed(0)},grid:{color:chartGridColor(),drawBorder:false}},x:{ticks:{color:chartFontColor(),font:{size:11,weight:'500'}},grid:{color:chartGridColor(),drawBorder:false}}}}});
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('checkbox');
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
     }
-
-    function createComparisonChart(canvasId,hist,lstm,gru){
-        const ctx=document.getElementById(canvasId); if(!ctx) return null;
-        const allHist=[...hist,null]; const lstmLine=[...Array(hist.length).fill(null),lstm]; const gruLine=[...Array(hist.length).fill(null),gru];
-        return new Chart(ctx,{
-            type:'line',
-            data:{labels:['Day -9','Day -8','Day -7','Day -6','Day -5','Day -4','Day -3','Day -2','Day -1','Day 0','Predicted'],
-            datasets:[{label:'Historical Prices',data:allHist,borderColor:'#4A90E2',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6},{label:'LSTM Prediction',data:lstmLine,borderColor:'#50E3C2',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6},{label:'GRU Prediction',data:gruLine,borderColor:'#F5A623',backgroundColor:'transparent',borderWidth:3,tension:0.3,pointRadius:4,pointHoverRadius:6}]},
-            options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:chartFontColor(),font:{size:12,weight:'500'}}}},scales:{y:{ticks:{color:chartFontColor()},grid:{color:chartGridColor()}},x:{ticks:{color:chartFontColor()},grid:{color:chartGridColor()}}}}
-        });
-    }
-
-    function updateChartThemes(){
-        [lstmChart,gruChart,comparisonChart].forEach(c=>{if(c){c.options.plugins.legend.labels.color=chartFontColor(); c.options.scales.x.ticks.color=chartFontColor(); c.options.scales.y.ticks.color=chartFontColor(); c.options.scales.x.grid.color=chartGridColor(); c.options.scales.y.grid.color=chartGridColor(); c.update();}});
-    }
-
-    form.addEventListener('submit', e=>{
-        e.preventDefault();
-        const val=document.getElementById('prices').value.split(',').map(Number);
-        if(val.length<10){alert('Enter 10 values'); return;}
-        loader.style.display='flex'; results.style.display='none';
-        setTimeout(()=>{
-            loader.style.display='none'; results.style.display='block';
-            // Random prediction simulation
-            const lstmPred=(val[val.length-1]*1.025).toFixed(2), gruPred=(val[val.length-1]*1.023).toFixed(2);
-            lstmPrice.textContent=lstmPred; gruPrice.textContent=gruPred;
-
-            lstmChart?.destroy(); gruChart?.destroy(); comparisonChart?.destroy();
-            lstmChart=createForecastChart('lstmForecastChart','LSTM Forecast',[+lstmPred,+lstmPred*1.01,+lstmPred*1.02,+lstmPred*1.015,+lstmPred*1.018],'#50E3C2');
-            gruChart=createForecastChart('gruForecastChart','GRU Forecast',[+gruPred,+gruPred*1.01,+gruPred*1.02,+gruPred*1.015,+gruPred*1.018],'#F5A623');
-            comparisonChart=createComparisonChart('comparisonChart',val,+lstmPred,+gruPred);
-        },1000);
+    themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
     });
 
     // Mouse trail
-    const trailDots=[]; const trailCount=15; let mouseX=0, mouseY=0;
-    for(let i=0;i<trailCount;i++){ const dot=document.createElement('div'); dot.classList.add('trail-dot'); document.body.appendChild(dot); trailDots.push({el:dot,currentX:0,currentY:0}); }
-    document.addEventListener('mousemove', e=>{ mouseX=e.clientX; mouseY=e.clientY; });
-    function animateTrail(){ let prevX=mouseX, prevY=mouseY; trailDots.forEach((dot,index)=>{ const delay=index*0.08; dot.currentX+=(prevX-dot.currentX)*(0.25-delay); dot.currentY+=(prevY-dot.currentY)*(0.25-delay); dot.el.style.left=dot.currentX+'px'; dot.el.style.top=dot.currentY+'px'; const scale=1-(index/trailCount)*0.5; dot.el.style.transform=`translate(-50%,-50%) scale(${scale})`; dot.el.style.opacity=0.7-(index/trailCount)*0.5; dot.el.classList.add('active'); prevX=dot.currentX; prevY=dot.currentY; }); requestAnimationFrame(animateTrail); }
+    const trailDots = [];
+    const trailCount = 15;
+    let mouseX = 0, mouseY = 0;
+    for (let i = 0; i < trailCount; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('trail-dot');
+        document.body.appendChild(dot);
+        trailDots.push({ el: dot, currentX: 0, currentY: 0 });
+    }
+    document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+    function animateTrail() {
+        let prevX = mouseX, prevY = mouseY;
+        trailDots.forEach((dot, index) => {
+            const delay = index * 0.08;
+            dot.currentX += (prevX - dot.currentX) * (0.25 - delay);
+            dot.currentY += (prevY - dot.currentY) * (0.25 - delay);
+            dot.el.style.left = dot.currentX + 'px';
+            dot.el.style.top = dot.currentY + 'px';
+            const scale = 1 - (index / trailCount) * 0.5;
+            dot.el.style.transform = `translate(-50%,-50%) scale(${scale})`;
+            dot.el.style.opacity = 0.7 - (index / trailCount) * 0.5;
+            dot.el.classList.add('active');
+            prevX = dot.currentX;
+            prevY = dot.currentY;
+        });
+        requestAnimationFrame(animateTrail);
+    }
     animateTrail();
 });
 </script>

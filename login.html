@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - StocksAI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --bg-color: #f0f2f5;
+    --card-bg-color: #ffffff;
+    --text-color: #333333;
+    --heading-color: #1a202c;
+    --border-color: #e2e8f0;
+    --shadow-color: rgba(0,0,0,0.1);
+    --primary-color: #4A90E2;
+    --primary-hover-color: #357ABD;
+    --secondary-color: #50E3C2;
+    --gradient-start: #4A90E2;
+    --gradient-end: #50E3C2;
+    --font-family: 'Poppins', sans-serif;
+    --error-color: #dc3545;
+}
+
+body.dark-mode {
+    --bg-color: #1a202c;
+    --card-bg-color: #2d3748;
+    --text-color: #e2e8f0;
+    --heading-color: #ffffff;
+    --border-color: #4a5568;
+    --shadow-color: rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+    font-family: var(--font-family);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background-color 0.3s;
+}
+
+.login-container {
+    background-color: var(--card-bg-color);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px var(--shadow-color);
+    max-width: 450px;
+    width: 100%;
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo h1 {
+    color: var(--heading-color);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.logo h1 span {
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.logo p {
+    color: var(--text-color);
+    font-size: 0.95rem;
+    opacity: 0.8;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.error-message {
+    background-color: #fee;
+    border: 1px solid var(--error-color);
+    color: var(--error-color);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+}
+
+.error-message::before {
+    content: "⚠️";
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: var(--font-family);
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(74, 144, 226, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.divider {
+    text-align: center;
+    margin: 25px 0;
+    position: relative;
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.divider span {
+    background-color: var(--card-bg-color);
+    padding: 0 15px;
+    position: relative;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.register-link {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+.register-link a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s;
+}
+
+.register-link a:hover {
+    color: var(--primary-hover-color);
+    text-decoration: underline;
+}
+
+.theme-switch-wrapper {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+@media (max-width: 576px) {
+    .login-container {
+        padding: 30px 25px;
+    }
+
+    .logo h1 {
+        font-size: 2rem;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="theme-switch-wrapper">
+    <label class="theme-switch" for="checkbox">
+        <input type="checkbox" id="checkbox" />
+        <div class="slider round"></div>
+    </label>
+</div>
+
+<div class="login-container">
+    <div class="logo">
+        <h1><span>Stocks</span>AI</h1>
+        <p>Advanced Stock Price Forecaster</p>
+    </div>
+
+    {% if error %}
+    <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/login">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Login</button>
+    </form>
+
+    <div class="divider">
+        <span>or</span>
+    </div>
+
+    <div class="register-link">
+        Don't have an account? <a href="/register">Register here</a>
+    </div>
+</div>
+
+<script>
+// Theme toggle
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('checkbox');
+
+    // Load saved theme
+    if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+    }
+
+    // Toggle theme
+    themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+});
+</script>
+
+</body>
+</html>
